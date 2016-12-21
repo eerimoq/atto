@@ -12,10 +12,9 @@ int growgap(buffer_t *bp, point_t n)
 	char_t *new;
 	point_t buflen, newlen, xgap, xegap;
 		
-	assert(bp->b_buf <= bp->b_gap);
-	assert(bp->b_gap <= bp->b_egap);
-	assert(bp->b_egap <= bp->b_ebuf);
-
+	/* assert(bp->b_buf <= bp->b_gap); */
+	/* assert(bp->b_gap <= bp->b_egap); */
+	/* assert(bp->b_egap <= bp->b_ebuf); */
 	xgap = bp->b_gap - bp->b_buf;
 	xegap = bp->b_egap - bp->b_buf;
 	buflen = bp->b_ebuf - bp->b_buf;
@@ -25,17 +24,21 @@ int growgap(buffer_t *bp, point_t n)
 	newlen = buflen + n * sizeof (char_t);
 
 	if (buflen == 0) {
-		if (newlen < 0 || MAX_SIZE_T < newlen)
-			fatal("%s: Failed to allocate required memory.\n");
-		new = (char_t*) malloc((size_t) newlen);
-		if (new == NULL)			
-			fatal("%s: Failed to allocate required memory.\n");	/* Cannot edit a file without a buffer. */
+            if (newlen < 0 || MAX_SIZE_T < newlen) {
+                fatal("%s: Failed to allocate required memory.\n");
+                return (-1);
+            }
+		new = (char_t*) MALLOC((size_t) newlen);
+		if (new == NULL) {
+                    fatal("%s: Failed to allocate required memory.\n");	/* Cannot edit a file without a buffer. */
+                    return (-1);
+                }
 	} else {
 		if (newlen < 0 || MAX_SIZE_T < newlen) {
 			msg("Failed to allocate required memory");
 			return (FALSE);
 		}
-		new = (char_t*) realloc(bp->b_buf, (size_t) newlen);
+		new = (char_t*) REALLOC(bp->b_buf, (size_t) newlen);
 		if (new == NULL) {
 			msg("Failed to allocate required memory");    /* Report non-fatal error. */
 			return (FALSE);
@@ -53,10 +56,10 @@ int growgap(buffer_t *bp, point_t n)
 		*--bp->b_egap = *--bp->b_ebuf;
 	bp->b_ebuf = bp->b_buf + newlen;
 
-	assert(bp->b_buf < bp->b_ebuf);          /* Buffer must exist. */
-	assert(bp->b_buf <= bp->b_gap);
-	assert(bp->b_gap < bp->b_egap);          /* Gap must grow only. */
-	assert(bp->b_egap <= bp->b_ebuf);
+	/* assert(bp->b_buf < bp->b_ebuf);          /\* Buffer must exist. *\/ */
+	/* assert(bp->b_buf <= bp->b_gap); */
+	/* assert(bp->b_gap < bp->b_egap);          /\* Gap must grow only. *\/ */
+	/* assert(bp->b_egap <= bp->b_ebuf); */
 	return (TRUE);
 }
 
@@ -67,9 +70,9 @@ point_t movegap(buffer_t *bp, point_t offset)
 		*--bp->b_egap = *--bp->b_gap;
 	while (bp->b_egap < p)
 		*bp->b_gap++ = *bp->b_egap++;
-	assert(bp->b_gap <= bp->b_egap);
-	assert(bp->b_buf <= bp->b_gap);
-	assert(bp->b_egap <= bp->b_ebuf);
+	/* assert(bp->b_gap <= bp->b_egap); */
+	/* assert(bp->b_buf <= bp->b_gap); */
+	/* assert(bp->b_egap <= bp->b_ebuf); */
 	return (pos(bp, bp->b_egap));
 }
 
@@ -84,7 +87,7 @@ char_t * ptr(buffer_t *bp, register point_t offset)
 /* Given a pointer into the buffer, convert it to a buffer offset */
 point_t pos(buffer_t *bp, register char_t *cp)
 {
-	assert(bp->b_buf <= cp && cp <= bp->b_ebuf);
+	/* assert(bp->b_buf <= cp && cp <= bp->b_ebuf); */
 	return (cp - bp->b_buf - (cp < bp->b_egap ? 0 : bp->b_egap - bp->b_gap));
 }
 
@@ -94,7 +97,7 @@ int posix_file(char *fn)
 		return (FALSE);
 
 	for (; *fn != '\0'; ++fn) {
-		if (!isalnum(*fn) && *fn != '.' && *fn != '_' && *fn != '-' && *fn != '/')
+            if (!isalnum((int)*fn) && *fn != '.' && *fn != '_' && *fn != '-' && *fn != '/')
 			return (FALSE);
 	}
 	return (TRUE);
@@ -102,25 +105,24 @@ int posix_file(char *fn)
 
 int save(char *fn)
 {
-	FILE *fp;
+	struct fs_file_t file;
 	point_t length;
 		
 	if (!posix_file(fn)) {
 		msg("Not a portable POSIX file name.");
 		return (FALSE);
 	}
-	fp = fopen(fn, "w");
-	if (fp == NULL) {
+	if (fs_open(&file, fn, FS_WRITE | FS_CREAT | FS_TRUNC) != 0) {
 		msg("Failed to open file \"%s\".", fn);
 		return (FALSE);
 	}
 	(void) movegap(curbp, (point_t) 0);
 	length = (point_t) (curbp->b_ebuf - curbp->b_egap);
-	if (fwrite(curbp->b_egap, sizeof (char), (size_t) length, fp) != length) {
+	if (fs_write(&file, curbp->b_egap, length) != length) {
 		msg("Failed to write file \"%s\".", fn);
 		return (FALSE);
 	}
-	if (fclose(fp) != 0) {
+	if (fs_close(&file) != 0) {
 		msg("Failed to close file \"%s\".", fn);
 		return (FALSE);
 	}
@@ -141,29 +143,29 @@ int load_file(char *fn)
 /* reads file into buffer at point */
 int insert_file(char *fn, int modflag)
 {
-	FILE *fp;
+	struct fs_file_t file;
 	size_t len;
-	struct stat sb;
+	struct fs_stat_t sb;
 
-	if (stat(fn, &sb) < 0) {
+	if (fs_stat(fn, &sb) < 0) {
 		msg("Failed to find file \"%s\".", fn);
 		return (FALSE);
 	}
-	if (MAX_SIZE_T < sb.st_size) {
+	if (MAX_SIZE_T < sb.size) {
 		msg("File \"%s\" is too big to load.", fn);
 		return (FALSE);
 	}
-	if (curbp->b_egap - curbp->b_gap < sb.st_size * sizeof (char_t) && !growgap(curbp, sb.st_size))
+	if (curbp->b_egap - curbp->b_gap < sb.size * sizeof (char_t) && !growgap(curbp, sb.size))
 		return (FALSE);
-	if ((fp = fopen(fn, "r")) == NULL) {
+	if (fs_open(&file, fn, FS_READ) != 0) {
 		msg("Failed to open file \"%s\".", fn);
 		return (FALSE);
 	}
 	curbp->b_point = movegap(curbp, curbp->b_point);
 	undoset();
-	curbp->b_gap += len = fread(curbp->b_gap, sizeof (char), (size_t) sb.st_size, fp);
+	curbp->b_gap += len = fs_read(&file, curbp->b_gap, sb.size);
 
-	if (fclose(fp) != 0) {
+	if (fs_close(&file) != 0) {
 		msg("Failed to close file \"%s\".", fn);
 		return (FALSE);
 	}

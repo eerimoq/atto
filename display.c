@@ -122,7 +122,7 @@ void display(window_t *wp, int flag)
 	bp->b_epage = bp->b_page;
 	/* paint screen from top of page until we hit maxline */ 
 	while (1) {
-		/* reached point - store the cursor position */
+	/* reached point - store the cursor position */
 		if (bp->b_point == bp->b_epage) {
 			bp->b_row = i;
 			bp->b_col = j;

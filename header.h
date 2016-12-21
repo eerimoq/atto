@@ -3,10 +3,12 @@
  * Derived from: Anthony's Editor January 93, (Public Domain 1991, 1993 by Anthony Howe)
  */
 
+#include "simba.h"
+
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <curses.h>
+#include "curses.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <ctype.h>
@@ -14,7 +16,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#define VERSION	 "Atto 1.7, Public Domain, December 2015, by Hugh Barney,  No warranty."
+#ifndef NAME_MAX
+#    define NAME_MAX 64
+#endif
+#define ATTO_VERSION	 "Atto 1.7, Public Domain, December 2015, by Hugh Barney,  No warranty."
 #define PROG_NAME "atto"
 #define B_MODIFIED	0x01		/* modified buffer */
 #define B_OVERWRITE	0x02		/* overwite mode */
@@ -28,6 +33,10 @@
 #define STRBUF_S        16
 #define MIN_GAP_EXPAND  512
 #define TEMPFILE        "/tmp/feXXXXXX"
+
+#ifndef CONFIG_EMACS_HEAP_SIZE
+#    define CONFIG_EMACS_HEAP_SIZE 32768
+#endif
 
 typedef unsigned char char_t;
 typedef long point_t;
@@ -202,3 +211,27 @@ extern void w2b(window_t *);
 extern void b2w(window_t *);
 extern void associate_b2w(buffer_t *, window_t *);
 extern void disassociate_b(window_t *);
+
+extern struct heap_t atto_heap;
+
+static inline void FREE(void *buf_p)
+{
+    heap_free(&atto_heap, buf_p);
+}
+
+static inline void *MALLOC(size_t size)
+{
+    return (heap_alloc(&atto_heap, size));
+}
+
+static inline void *REALLOC(void *buf_p, size_t size)
+{
+    void *new_buf_p = heap_alloc(&atto_heap, size);
+
+    if (new_buf_p != NULL) {
+        memcpy(new_buf_p, buf_p, size);
+        FREE(buf_p);
+    }
+    
+    return (new_buf_p);
+}

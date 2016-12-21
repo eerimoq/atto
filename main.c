@@ -24,10 +24,33 @@ buffer_t *bheadp;			/* head of list of buffers */
 window_t *curwp;
 window_t *wheadp;
 
-int main(int argc, char **argv)
+struct heap_t atto_heap;
+static char atto_heap_buffer[CONFIG_EMACS_HEAP_SIZE];
+static size_t sizes[2] = { 256, 512 };
+
+int atto_main(int argc, char **argv)
 {
-	if (initscr() == NULL)
-		fatal("%s: Failed to initialize the screen.\n");
+    heap_init(&atto_heap,
+              &atto_heap_buffer[0],
+              sizeof(atto_heap_buffer),
+              sizes);
+
+    done = 0;
+    result = 0;
+    nscrap = 0;
+    scrap = NULL;
+
+    key_return = NULL;
+    key_map = NULL;
+    curbp = NULL;
+    bheadp = NULL;
+    curwp = NULL;
+    wheadp = NULL;
+    
+    if (initscr() == NULL) {
+        fatal("%s: Failed to initialize the screen.\n");
+        return (-1);
+    }
 
 	raw();
 	noecho();
@@ -48,8 +71,10 @@ int main(int argc, char **argv)
 	one_window(curwp);
 	associate_b2w(curbp, curwp);
 
-	if (!growgap(curbp, CHUNK))
-		fatal("%s: Failed to allocate required memory.\n");
+	if (!growgap(curbp, CHUNK)) {
+            fatal("%s: Failed to allocate required memory.\n");
+            return (-1);
+        }
 
 	top();
 	key_map = keymap;
@@ -57,7 +82,7 @@ int main(int argc, char **argv)
 	while (!done) {
 		update_display();
 		input = getkey(key_map, &key_return);
-
+                
 		if (key_return != NULL)
 			(key_return->func)();
 		else
@@ -65,7 +90,7 @@ int main(int argc, char **argv)
 		/* debug_stats("main loop:"); */
 	}
 	if (scrap != NULL)
-		free(scrap);
+		FREE(scrap);
 
 	move(LINES-1, 0);
 	refresh();
@@ -81,10 +106,9 @@ void fatal(char *msg)
 		move(LINES-1, 0);
 		refresh();
 		endwin();
-		putchar('\n');
+		/* putchar('\n'); */
 	}
-	fprintf(stderr, msg, PROG_NAME);
-	exit(1);
+        std_printf(FSTR("%s\r\n"), msg);
 }
 
 void msg(char *msg, ...)
@@ -98,6 +122,7 @@ void msg(char *msg, ...)
 
 void debug(char *format, ...)
 {
+#if 0
 	char buffer[256];
 	va_list args;
 	va_start (args, format);
@@ -113,6 +138,7 @@ void debug(char *format, ...)
 
 	fprintf(debug_fp,"%s", buffer);
 	fflush(debug_fp);
+#endif
 }
 
 void debug_stats(char *s) {

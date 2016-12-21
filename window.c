@@ -6,9 +6,9 @@ int win_cnt = 0;
 
 window_t* new_window()
 {
-	window_t *wp = (window_t *)malloc(sizeof(window_t));
+	window_t *wp = (window_t *)MALLOC(sizeof(window_t));
 	
-	assert(wp != NULL); /* call fatal instead XXX */
+	/* assert(wp != NULL); /\* call fatal instead XXX *\/ */
 	wp->w_next = NULL;
 	wp->w_bufp = NULL;
 	wp->w_point = 0;
@@ -82,7 +82,7 @@ void free_other_windows(window_t *winp)
 		next = wp->w_next; /* get next before a call to free() makes wp undefined */
 		if (wp != winp) {
 			disassociate_b(wp); /* this window no longer references its buffer */
-			free(wp);
+			FREE(wp);
 		}
 	}
 	
@@ -91,14 +91,14 @@ void free_other_windows(window_t *winp)
 }
 
 void associate_b2w(buffer_t *bp, window_t *wp) {
-	assert(bp != NULL);
-	assert(wp != NULL);
+	/* assert(bp != NULL); */
+	/* assert(wp != NULL); */
 	wp->w_bufp = bp;
 	bp->b_cnt++;
 }
 
 void disassociate_b(window_t *wp) {
-	assert(wp != NULL);
-	assert(wp->w_bufp != NULL);
+	/* assert(wp != NULL); */
+	/* assert(wp->w_bufp != NULL); */
 	wp->w_bufp->b_cnt--;
 }

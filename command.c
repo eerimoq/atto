@@ -126,7 +126,7 @@ void wright()
 
 void insert()
 {
-	assert(curbp->b_gap <= curbp->b_egap);
+	/* assert(curbp->b_gap <= curbp->b_egap); */
 	if (curbp->b_gap == curbp->b_egap && !growgap(curbp, CHUNK))
 		return;
 	curbp->b_point = movegap(curbp, curbp->b_point);
@@ -197,8 +197,8 @@ void readfile()
 	
 	temp[0] = '\0';
 
-	result = getfilename("Find file: ", (char*)temp, NAME_MAX);
-	/* result = getinput("Find file: ", (char*)temp, NAME_MAX); */
+	/* result = getfilename("Find file: ", (char*)temp, NAME_MAX); */
+        result = getinput("Find file: ", (char*)temp, NAME_MAX);
 
 	if (result) {
 		bp = find_buffer(temp, TRUE);
@@ -261,7 +261,7 @@ void killbuffer()
 	}
 
 	next_buffer();
-	assert(kill_bp != curbp);
+	/* assert(kill_bp != curbp); */
 	delete_buffer(kill_bp);
 }
 
@@ -310,7 +310,7 @@ void copy_cut(int cut)
 	if (curbp->b_mark == NOMARK || curbp->b_point == curbp->b_mark)
 		return;
 	if (scrap != NULL) {
-		free(scrap);
+		FREE(scrap);
 		scrap = NULL;
 	}
 	if (curbp->b_point < curbp->b_mark) {
@@ -324,7 +324,7 @@ void copy_cut(int cut)
 		(void) movegap(curbp, curbp->b_mark);
 		nscrap = curbp->b_point - curbp->b_mark;
 	}
-	if ((scrap = (char_t*) malloc(nscrap)) == NULL) {
+	if ((scrap = (char_t*) MALLOC(nscrap)) == NULL) {
 		msg("No more memory available.");
 	} else {
 		undoset();
@@ -376,7 +376,7 @@ void showpos()
 
 void version()
 {
-	msg(VERSION);
+	msg(ATTO_VERSION);
 }
 
 char* get_temp_file()
@@ -384,8 +384,10 @@ char* get_temp_file()
 	static char temp_file[] = TEMPFILE;
 	strcpy(temp_file, TEMPFILE);
 
-	if (-1 == mkstemp(temp_file))
-		fatal("%s: Failed to create temp file\n");
+	if (-1 == mkstemp(temp_file)) {
+            fatal("%s: Failed to create temp file\n");
+            return (NULL);
+        }
 
 	return temp_file;
 }

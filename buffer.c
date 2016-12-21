@@ -42,11 +42,11 @@ buffer_t* find_buffer (char *fname, int cflag)
 	}
 
 	if (cflag != FALSE) {
-		if ((bp = (buffer_t *) malloc (sizeof (buffer_t))) == NULL)
+		if ((bp = (buffer_t *) MALLOC (sizeof (buffer_t))) == NULL)
 			return (0);
 
 		buffer_init(bp);
-		assert(bp != NULL);
+                /* assert(bp != NULL);  */
 		
 		/* find the place in the list to insert this buffer */
 		if (bheadp == NULL) {
@@ -78,7 +78,7 @@ int delete_buffer (buffer_t *bp)
 	buffer_t *sb = NULL;
 
 	/* we must have switched to a different buffer first */
-	assert(bp != curbp);
+	/* assert(bp != curbp); */
 	
 	/* if buffer is the head buffer */
 	if (bp == bheadp) {
@@ -87,20 +87,20 @@ int delete_buffer (buffer_t *bp)
 		/* find place where the bp buffer is next */
 		for (sb = bheadp; sb->b_next != bp && sb->b_next != NULL; sb = sb->b_next)
 			;
-		assert(sb->b_next == bp || sb->b_next == NULL);
+		/* assert(sb->b_next == bp || sb->b_next == NULL); */
 		sb->b_next = bp->b_next;
 	}
 
 	/* now we can delete */
-	free(bp->b_buf);
-	free(bp);
+	FREE(bp->b_buf);
+	FREE(bp);
 	return TRUE;
 }
 
 void next_buffer()
 {
-	assert(curbp != NULL);
-	assert(bheadp != NULL);
+	/* assert(curbp != NULL); */
+	/* assert(bheadp != NULL); */
 	disassociate_b(curwp);	
 	curbp = (curbp->b_next != NULL ? curbp->b_next : bheadp);
 	associate_b2w(curbp,curwp);
