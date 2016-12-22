@@ -381,6 +381,7 @@ void version()
 
 char* get_temp_file()
 {
+#if ATTO_CONFIG_TAB_COMPLETION == 1
 	static char temp_file[] = TEMPFILE;
 	strcpy(temp_file, TEMPFILE);
 
@@ -390,4 +391,7 @@ char* get_temp_file()
         }
 
 	return temp_file;
+#else
+        return (NULL);
+#endif
 }
