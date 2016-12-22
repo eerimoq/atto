@@ -55,7 +55,9 @@
  */
 #ifndef _CURSES_PRIVATE
 #ifndef __cplusplus
+#ifndef bool
 #define	bool	char
+#endif
 #endif
 #define	reg	register
 
