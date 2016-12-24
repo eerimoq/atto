@@ -93,14 +93,39 @@ char *__unctrl[256] = {
         "0xf8", "0xf9",	"0xfa", "0xfb", "0xfc", "0xfd", "0xfe", "0xff",
 };
 
-static void vt100_screen_clear()
+/* static void vt100_screen_clear() */
+/* { */
+/*     std_printf(FSTR("\x1b[2J")); */
+/* } */
+
+static void vt100_cursor_save(void)
 {
-    std_printf(FSTR("\x1b[2J"));
+    std_printf(FSTR("\x1b""7"));
 }
 
-static void vt100_cursor_move(int y, int x)
+static void vt100_cursor_restore(void)
 {
-    std_printf(FSTR("\x1b[%d;%dH"), y, x);
+    std_printf(FSTR("\x1b""8"));
+}
+
+/* static void vt100_cursor_move(int y, int x) */
+/* { */
+/*     std_printf(FSTR("\x1b[%d;%dH"), y, x); */
+/* } */
+
+static void vt100_cursor_move_up(int rows)
+{
+    std_printf(FSTR("\x1b[%dA"), rows);
+}
+
+static void vt100_cursor_move_down(int rows)
+{
+    std_printf(FSTR("\x1b[%dB"), rows);
+}
+
+static void vt100_cursor_move_right(int columns)
+{
+    std_printf(FSTR("\x1b[%dC"), columns);
 }
 
 static void vt100_cursor_make_visible()
@@ -116,6 +141,19 @@ static void vt100_cursor_make_invisible()
 static void vt100_clear_to_eol(void)
 {
     std_printf(FSTR("\x1b[K"));
+}
+
+static void cursor_move(int y, int x)
+{
+    vt100_cursor_restore();
+
+    if (y > 0) {
+        vt100_cursor_move_down(y);
+    }
+
+    if (x > 0) {
+        vt100_cursor_move_right(x);
+    }
 }
 
 /* static void vt100_display_reversed(void) */
@@ -150,8 +188,15 @@ WINDOW *initscr()
         lines[i].text[0] = '\0';
     }
 
-    vt100_screen_clear();
-    vt100_cursor_move(1, 1);
+    /* Setup the screen. */
+    std_printf(FSTR("\r"));
+
+    for (i = 0; i < CONFIG_EMACS_ROWS_MAX; i++) {
+        std_printf(FSTR("\r\n"));
+    }
+
+    vt100_cursor_move_up(CONFIG_EMACS_ROWS_MAX);
+    vt100_cursor_save();
 
     return (&window);
 }
@@ -164,6 +209,7 @@ int wrefresh(WINDOW *win_p)
     int i;
     size_t len;
 
+    /* Less flickering with cursor invisible. */
     vt100_cursor_make_invisible();
 
     for (i = 0; i < membersof(lines); i++) {
@@ -175,7 +221,7 @@ int wrefresh(WINDOW *win_p)
         lines[i].flags = 0;
         len = strlen(&lines[i].text[0]);
 
-        vt100_cursor_move(i + 1, 1);
+        cursor_move(i, 0);
 
         if (len > 0) {
             chan_write(sys_get_stdout(), &lines[i].text[0], len);
@@ -184,7 +230,7 @@ int wrefresh(WINDOW *win_p)
         vt100_clear_to_eol();
     }
 
-    vt100_cursor_move(win_p->cury + 1, win_p->curx + 1);
+    cursor_move(win_p->cury, win_p->curx);
     vt100_cursor_make_visible();
 
     return (OK);
@@ -314,6 +360,17 @@ void idlok(WINDOW *win_p, int bf)
 
 int endwin()
 {
+    int i;
+
+    /* Clear the emacs screen. */
+    vt100_cursor_restore();
+
+    for (i = 0; i < CONFIG_EMACS_ROWS_MAX; i++) {
+        vt100_clear_to_eol();
+    }
+
+    vt100_cursor_restore();
+
     return (OK);
 }
 
