@@ -25,13 +25,13 @@
 #define B_OVERWRITE	0x02		/* overwite mode */
 #define MSGLINE         (LINES-1)
 #define NOMARK          -1
-#define CHUNK           8096L
+#define CHUNK           2048L
 #define K_BUFFER_LENGTH 256
 #define TEMPBUF         512
 #define STRBUF_L        256
 #define STRBUF_M        64
 #define STRBUF_S        16
-#define MIN_GAP_EXPAND  512
+#define MIN_GAP_EXPAND  256
 #define TEMPFILE        "/tmp/feXXXXXX"
 
 #ifndef CONFIG_EMACS_HEAP_SIZE
