@@ -191,11 +191,11 @@ WINDOW *initscr()
     /* Setup the screen. */
     std_printf(FSTR("\r"));
 
-    for (i = 0; i < CONFIG_EMACS_ROWS_MAX; i++) {
+    for (i = 0; i < CONFIG_EMACS_ROWS_MAX - 1; i++) {
         std_printf(FSTR("\r\n"));
     }
 
-    vt100_cursor_move_up(CONFIG_EMACS_ROWS_MAX);
+    vt100_cursor_move_up(CONFIG_EMACS_ROWS_MAX - 1);
     vt100_cursor_save();
 
     return (&window);
@@ -367,6 +367,10 @@ int endwin()
 
     for (i = 0; i < CONFIG_EMACS_ROWS_MAX; i++) {
         vt100_clear_to_eol();
+
+        if (i < CONFIG_EMACS_ROWS_MAX - 1) {
+            std_printf(FSTR("\r\n"));
+        }
     }
 
     vt100_cursor_restore();
