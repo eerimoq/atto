@@ -216,7 +216,9 @@ extern struct heap_t atto_heap;
 
 static inline void FREE(void *buf_p)
 {
-    heap_free(&atto_heap, buf_p);
+    if (buf_p != NULL) {
+        heap_free(&atto_heap, buf_p);
+    }
 }
 
 static inline void *MALLOC(size_t size)
