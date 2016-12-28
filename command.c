@@ -126,7 +126,7 @@ void wright()
 
 void insert()
 {
-	/* assert(curbp->b_gap <= curbp->b_egap); */
+	ASSERT(curbp->b_gap <= curbp->b_egap);
 	if (curbp->b_gap == curbp->b_egap && !growgap(curbp, CHUNK))
 		return;
 	curbp->b_point = movegap(curbp, curbp->b_point);
@@ -261,7 +261,7 @@ void killbuffer()
 	}
 
 	next_buffer();
-	/* assert(kill_bp != curbp); */
+	ASSERT(kill_bp != curbp);
 	delete_buffer(kill_bp);
 }
 

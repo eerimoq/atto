@@ -8,7 +8,7 @@ window_t* new_window()
 {
 	window_t *wp = (window_t *)MALLOC(sizeof(window_t));
 	
-	/* assert(wp != NULL); /\* call fatal instead XXX *\/ */
+	ASSERT(wp != NULL); /* call fatal instead XXX */
 	wp->w_next = NULL;
 	wp->w_bufp = NULL;
 	wp->w_point = 0;
@@ -91,14 +91,14 @@ void free_other_windows(window_t *winp)
 }
 
 void associate_b2w(buffer_t *bp, window_t *wp) {
-	/* assert(bp != NULL); */
-	/* assert(wp != NULL); */
+	ASSERT(bp != NULL);
+	ASSERT(wp != NULL);
 	wp->w_bufp = bp;
 	bp->b_cnt++;
 }
 
 void disassociate_b(window_t *wp) {
-	/* assert(wp != NULL); */
-	/* assert(wp->w_bufp != NULL); */
+	ASSERT(wp != NULL);
+	ASSERT(wp->w_bufp != NULL);
 	wp->w_bufp->b_cnt--;
 }

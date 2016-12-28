@@ -12,9 +12,9 @@ int growgap(buffer_t *bp, point_t n)
 	char_t *new;
 	point_t buflen, newlen, xgap, xegap;
 		
-	/* assert(bp->b_buf <= bp->b_gap); */
-	/* assert(bp->b_gap <= bp->b_egap); */
-	/* assert(bp->b_egap <= bp->b_ebuf); */
+	ASSERT(bp->b_buf <= bp->b_gap);
+	ASSERT(bp->b_gap <= bp->b_egap);
+	ASSERT(bp->b_egap <= bp->b_ebuf);
 	xgap = bp->b_gap - bp->b_buf;
 	xegap = bp->b_egap - bp->b_buf;
 	buflen = bp->b_ebuf - bp->b_buf;
@@ -56,10 +56,10 @@ int growgap(buffer_t *bp, point_t n)
 		*--bp->b_egap = *--bp->b_ebuf;
 	bp->b_ebuf = bp->b_buf + newlen;
 
-	/* assert(bp->b_buf < bp->b_ebuf);          /\* Buffer must exist. *\/ */
-	/* assert(bp->b_buf <= bp->b_gap); */
-	/* assert(bp->b_gap < bp->b_egap);          /\* Gap must grow only. *\/ */
-	/* assert(bp->b_egap <= bp->b_ebuf); */
+	ASSERT(bp->b_buf < bp->b_ebuf);          /* Buffer must exist. */
+	ASSERT(bp->b_buf <= bp->b_gap);
+	ASSERT(bp->b_gap < bp->b_egap);          /* Gap must grow only. */
+	ASSERT(bp->b_egap <= bp->b_ebuf);
 	return (TRUE);
 }
 
@@ -70,9 +70,9 @@ point_t movegap(buffer_t *bp, point_t offset)
 		*--bp->b_egap = *--bp->b_gap;
 	while (bp->b_egap < p)
 		*bp->b_gap++ = *bp->b_egap++;
-	/* assert(bp->b_gap <= bp->b_egap); */
-	/* assert(bp->b_buf <= bp->b_gap); */
-	/* assert(bp->b_egap <= bp->b_ebuf); */
+	ASSERT(bp->b_gap <= bp->b_egap);
+	ASSERT(bp->b_buf <= bp->b_gap);
+	ASSERT(bp->b_egap <= bp->b_ebuf);
 	return (pos(bp, bp->b_egap));
 }
 
@@ -87,7 +87,7 @@ char_t * ptr(buffer_t *bp, register point_t offset)
 /* Given a pointer into the buffer, convert it to a buffer offset */
 point_t pos(buffer_t *bp, register char_t *cp)
 {
-	/* assert(bp->b_buf <= cp && cp <= bp->b_ebuf); */
+	ASSERT(bp->b_buf <= cp && cp <= bp->b_ebuf);
 	return (cp - bp->b_buf - (cp < bp->b_egap ? 0 : bp->b_egap - bp->b_gap));
 }
 

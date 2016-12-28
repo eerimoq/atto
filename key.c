@@ -103,7 +103,7 @@ int getkey(keymap_t *keys, keymap_t **key_return)
 	record = buffer;
 
 	do {
-		/* assert(K_BUFFER_LENGTH > record - buffer); */
+		ASSERT(K_BUFFER_LENGTH > record - buffer);
 		/* read and record one byte. */
 		*record++ = (unsigned)getch();
 		*record = '\0';

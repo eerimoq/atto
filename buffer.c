@@ -46,7 +46,7 @@ buffer_t* find_buffer (char *fname, int cflag)
 			return (0);
 
 		buffer_init(bp);
-                /* assert(bp != NULL);  */
+                ASSERT(bp != NULL);
 		
 		/* find the place in the list to insert this buffer */
 		if (bheadp == NULL) {
@@ -78,7 +78,7 @@ int delete_buffer (buffer_t *bp)
 	buffer_t *sb = NULL;
 
 	/* we must have switched to a different buffer first */
-	/* assert(bp != curbp); */
+	ASSERT(bp != curbp);
 	
 	/* if buffer is the head buffer */
 	if (bp == bheadp) {
@@ -87,7 +87,7 @@ int delete_buffer (buffer_t *bp)
 		/* find place where the bp buffer is next */
 		for (sb = bheadp; sb->b_next != bp && sb->b_next != NULL; sb = sb->b_next)
 			;
-		/* assert(sb->b_next == bp || sb->b_next == NULL); */
+		ASSERT(sb->b_next == bp || sb->b_next == NULL);
 		sb->b_next = bp->b_next;
 	}
 
@@ -99,8 +99,8 @@ int delete_buffer (buffer_t *bp)
 
 void next_buffer()
 {
-	/* assert(curbp != NULL); */
-	/* assert(bheadp != NULL); */
+	ASSERT(curbp != NULL);
+	ASSERT(bheadp != NULL);
 	disassociate_b(curwp);	
 	curbp = (curbp->b_next != NULL ? curbp->b_next : bheadp);
 	associate_b2w(curbp,curwp);
