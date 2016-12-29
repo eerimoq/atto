@@ -49,6 +49,8 @@ struct line_t {
 };
 
 static WINDOW window;
+static void *input_p;
+static void *output_p;
 
 WINDOW *curscr = NULL;  /* Current screen. */
 WINDOW *stdscr = NULL;  /* Standard screen. */
@@ -95,52 +97,52 @@ char *__unctrl[256] = {
 
 /* static void vt100_screen_clear() */
 /* { */
-/*     std_printf(FSTR("\x1b[2J")); */
+/*     std_fprintf(output_p, FSTR("\x1b[2J")); */
 /* } */
 
 static void vt100_cursor_save(void)
 {
-    std_printf(FSTR("\x1b""7"));
+    std_fprintf(output_p, FSTR("\x1b""7"));
 }
 
 static void vt100_cursor_restore(void)
 {
-    std_printf(FSTR("\x1b""8"));
+    std_fprintf(output_p, FSTR("\x1b""8"));
 }
 
 /* static void vt100_cursor_move(int y, int x) */
 /* { */
-/*     std_printf(FSTR("\x1b[%d;%dH"), y, x); */
+/*     std_fprintf(output_p, FSTR("\x1b[%d;%dH"), y, x); */
 /* } */
 
 static void vt100_cursor_move_up(int rows)
 {
-    std_printf(FSTR("\x1b[%dA"), rows);
+    std_fprintf(output_p, FSTR("\x1b[%dA"), rows);
 }
 
 static void vt100_cursor_move_down(int rows)
 {
-    std_printf(FSTR("\x1b[%dB"), rows);
+    std_fprintf(output_p, FSTR("\x1b[%dB"), rows);
 }
 
 static void vt100_cursor_move_right(int columns)
 {
-    std_printf(FSTR("\x1b[%dC"), columns);
+    std_fprintf(output_p, FSTR("\x1b[%dC"), columns);
 }
 
 static void vt100_cursor_make_visible()
 {
-    std_printf(FSTR("\x1b[?25h"));
+    std_fprintf(output_p, FSTR("\x1b[?25h"));
 }
 
 static void vt100_cursor_make_invisible()
 {
-    std_printf(FSTR("\x1b[?25l"));
+    std_fprintf(output_p, FSTR("\x1b[?25l"));
 }
 
 static void vt100_clear_to_eol(void)
 {
-    std_printf(FSTR("\x1b[K"));
+    std_fprintf(output_p, FSTR("\x1b[K"));
 }
 
 static void cursor_move(int y, int x)
@@ -158,12 +160,12 @@ static void cursor_move(int y, int x)
 
 /* static void vt100_display_reversed(void) */
 /* { */
-/*     std_printf(FSTR("\x1b[7m")); */
+/*     std_fprintf(output_p, FSTR("\x1b[7m")); */
 /* } */
 
 /* static void vt100_display_reset_all_attributes(void) */
 /* { */
-/*     std_printf(FSTR("\x1b[0m")); */
+/*     std_fprintf(output_p, FSTR("\x1b[0m")); */
 /* } */
 
 /**
@@ -189,10 +191,10 @@ WINDOW *initscr()
     }
 
     /* Setup the screen. */
-    std_printf(FSTR("\r"));
+    std_fprintf(output_p, FSTR("\r"));
 
     for (i = 0; i < CONFIG_EMACS_ROWS_MAX - 1; i++) {
-        std_printf(FSTR("\r\n"));
+        std_fprintf(output_p, FSTR("\r\n"));
     }
 
     vt100_cursor_move_up(CONFIG_EMACS_ROWS_MAX - 1);
@@ -224,7 +226,7 @@ int wrefresh(WINDOW *win_p)
         cursor_move(i, 0);
 
         if (len > 0) {
-            chan_write(sys_get_stdout(), &lines[i].text[0], len);
+            chan_write(output_p, &lines[i].text[0], len);
         }
 
         vt100_clear_to_eol();
@@ -349,7 +351,7 @@ int wgetch(WINDOW *win_p)
 {
     char c;
 
-    chan_read(sys_get_stdin(), &c, 1);
+    chan_read(input_p, &c, 1);
 
     return (c);
 }
@@ -369,7 +371,7 @@ int endwin()
         vt100_clear_to_eol();
 
         if (i < CONFIG_EMACS_ROWS_MAX - 1) {
-            std_printf(FSTR("\r\n"));
+            std_fprintf(output_p, FSTR("\r\n"));
         }
     }
 
@@ -395,4 +397,14 @@ int noecho()
 
 void flushinp()
 {
+}
+
+void atto_curses_set_input_channel(void *chin_p)
+{
+    input_p = chin_p;
+}
+
+void atto_curses_set_output_channel(void *chout_p)
+{
+    output_p = chout_p;
 }
