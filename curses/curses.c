@@ -192,9 +192,11 @@ WINDOW *initscr()
 
     /* Setup the screen. */
     std_fprintf(output_p, FSTR("\r"));
+    vt100_clear_to_eol();
 
     for (i = 0; i < CONFIG_EMACS_ROWS_MAX - 1; i++) {
         std_fprintf(output_p, FSTR("\r\n"));
+        vt100_clear_to_eol();
     }
 
     vt100_cursor_move_up(CONFIG_EMACS_ROWS_MAX - 1);
@@ -259,8 +261,10 @@ int wmove(WINDOW *win_p, int y, int x)
 
 int wclrtoeol(WINDOW *win_p)
 {
-    lines[win_p->cury].text[win_p->curx] = '\0';
-    lines[win_p->cury].flags |= __ISDIRTY;
+    if (lines[win_p->cury].text[win_p->curx] != '\0') {
+        lines[win_p->cury].text[win_p->curx] = '\0';
+        lines[win_p->cury].flags |= __ISDIRTY;
+    }
 
     return (OK);
 }
