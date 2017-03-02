@@ -46,7 +46,7 @@ buffer_t* find_buffer (char *fname, int cflag)
 			return (0);
 
 		buffer_init(bp);
-                ASSERT(bp != NULL);
+                ASSERTNRN(bp != NULL, ENOMEM);
 		
 		/* find the place in the list to insert this buffer */
 		if (bheadp == NULL) {
@@ -99,8 +99,8 @@ int delete_buffer (buffer_t *bp)
 
 void next_buffer()
 {
-	ASSERT(curbp != NULL);
-	ASSERT(bheadp != NULL);
+	ASSERTRV(curbp != NULL);
+	ASSERTRV(bheadp != NULL);
 	disassociate_b(curwp);	
 	curbp = (curbp->b_next != NULL ? curbp->b_next : bheadp);
 	associate_b2w(curbp,curwp);
