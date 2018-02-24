@@ -26,7 +26,9 @@ window_t *wheadp;
 
 struct heap_t atto_heap;
 static char atto_heap_buffer[CONFIG_EMACS_HEAP_SIZE];
-static size_t sizes[2] = { 256, 512 };
+static size_t sizes[HEAP_FIXED_SIZES_MAX] = {
+    256, 512, 512, 512, 512, 512, 512, 512
+};
 
 int atto_main(int argc, char **argv)
 {
